@@ -14,7 +14,7 @@ const logger = new Logger('library.js');
 
 export function load(library: Library): boolean {
     if (Loaded.includes(library) || Loaded.map(m => m.name).includes(library.name)) {
-        logger.warn(`Library<${library.name}> cannot be loaded more than once`);
+        logger.descriptiveError(`Library<${library.name}> cannot be loaded because another library with the same name already exists`);
         return false;
     }
 
