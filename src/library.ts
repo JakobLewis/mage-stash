@@ -2,6 +2,9 @@ import * as Plugin from './plugin.js';
 import { Wisp } from './wisp.js';
 import Logger from './logging.js';
 
+// TODO: Implement searching
+// TODO: Implement partial/scoped search
+
 export interface Library extends Plugin.Plugin {
     readonly findWisp: (uniqueIdentifier: string, fuzzy: boolean) => Promise<Wisp | undefined> | Wisp | undefined;
     readonly search: (searchTerms: string[]) => Promise<Wisp[]> | Wisp[];
@@ -11,25 +14,10 @@ const Loaded = new Array<Library>();
 
 const logger = new Logger('library.js');
 
-
-export function load(library: Library): boolean {
-    if (Loaded.includes(library) || Loaded.map(m => m.name).includes(library.name)) {
-        logger.descriptiveError(`Library<${library.name}> cannot be loaded because another library with the same name already exists`);
-        return false;
-    }
-
-    if (library.hooks.start) library.hooks.start();
+export function add(library: Library): boolean {
+    if (!Plugin.load(library)) return false;
     Loaded.push(library);
-
-    logger.info(`Library<${library.name}> loaded`);
-
     return true;
-}
-
-export function remove(library: Library): void {
-    const index = Loaded.indexOf(library);
-    if (index !== -1) Loaded.splice(index, 1);
-    else logger.warn(`Library<${library.name}> cannot be removed because it isn't loaded`);
 }
 
 export function list(): string[] {
@@ -39,28 +27,36 @@ export function list(): string[] {
 export async function findWisp(uniqueIdentifier: string, fuzzy: boolean): Promise<Wisp | undefined> {
     const librarySnapshot = [...Loaded]; // Used to ensure Loaded changes dont break reads
     for (const library of librarySnapshot) {
-        const result = await library.findWisp(uniqueIdentifier, fuzzy);
-        if (result !== undefined) return result;
+        try {
+            const result = await library.findWisp(uniqueIdentifier, fuzzy);
+            if (result !== undefined) return result;
+        } catch (e) {
+            logger.descriptiveError(`Library<${library.name}> threw during findWisp: `, e);
+        }
     }
     return undefined;
 }
 
 export function scatterFindWisp(uniqueIdentifier: string, fuzzy: boolean): ReturnType<Library['findWisp']>[] {
-    return Loaded.map(library => library.findWisp(uniqueIdentifier, fuzzy));
+    return Loaded.map(library => {
+        try {
+            return library.findWisp(uniqueIdentifier, fuzzy)
+        } catch (e) {
+            logger.descriptiveError(`Library<${library.name}> threw during scatterFindWisp: `, e);
+            return undefined;
+        }
+    });
+
 }
 
 export function search(searchTerms: string[]): ReturnType<Library['search']>[] {
-    return Loaded.map(library => library.search(searchTerms));
-}
-
-process.on('exit', () => {
-    logger.info('Unloading all libraries before exit', true);
-    logger.addPreface('    ');
-    Loaded.forEach(library => {
+    return Loaded.map(library => {
         try {
-            remove(library);
+            return library.search(searchTerms);
         } catch (e) {
-            logger.descriptiveError(`Library<${library.name}> threw the following error during exit: `, Logger.parseError(e));
+            logger.descriptiveError(`Library<${library.name}> threw during search: `, e);
+            return [];
         }
-    });
-});
+    }
+    );
+}

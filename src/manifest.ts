@@ -21,10 +21,15 @@ export class MismatchedResultError extends Error {
 
 const Loaded = new Array<Manifest>();
 
+export function add(manifest: Manifest): boolean {
+    if (!Plugin.load(manifest)) return false;
+    Loaded.push(manifest);
+    return true;
+}
+
 const logger = new Logger('manifest.js');
 
 const pendingWisps: Record<Wisp['path'], Promise<Wisp | undefined>> = {};
-
 const memoryCache: Record<Wisp['path'], Wisp | undefined> = {};
 const timeouts: Record<Wisp['path'], EpochTimeStamp> = {};
 
@@ -53,59 +58,12 @@ async function read<T extends Wisp['path']>(path: T): Promise<Wisp<T> | undefine
     return undefined;
 }
 
-
-
-export function load(manifest: Manifest): boolean {
-
-    if (Loaded.includes(manifest) || Loaded.map(m => m.name).includes(manifest.name)) {
-        logger.warn(`Manifest<${manifest.name}> cannot be loaded more than once`);
-        return false;
-    }
-
-    if (manifest.hooks.start) {
-        try {
-            manifest.hooks.start();
-        }
-        catch (e) {
-            // If an error is thrown during startup, we cannot guarantee the plugin is correctly started
-            logger.descriptiveError(`Could not successfully load Manifest<${manifest.name}> due to ${manifest.name}.hooks.start() raising an exception`, e);
-            return false;
-        }
-    }
-    Loaded.push(manifest);
-
-    logger.info(`Manifest<${manifest.name}> loaded`);
-
-    return true;
-}
-
-export function remove(manifest: Manifest): boolean {
-    const index = Loaded.indexOf(manifest);
-    if (index === -1) {
-        logger.warn(`Manifest<${manifest.name}> cannot be removed because it isn't loaded`);
-        return false;
-    }
-
-    Loaded.splice(index, 1);
-
-    if (manifest.hooks.stop) {
-        try { manifest.hooks.stop(); }
-        catch (e) { logger.descriptiveError(`${manifest.name}.hooks.stop() threw while removing said manifest`, e); }
-    }
-
-    return true;
-}
-
-export function list(): string[] {
-    return Loaded.map(manifest => manifest.name);
-}
-
-
 export async function readWisp<T extends Wisp['path']>(path: T): Promise<Wisp<T> | undefined> {
     if (!isValidPath(path)) {
         logger.error(new MalformedPathError(path));
         return undefined;
     }
+
     // Check memory cache; updates timeout and returns on success
     if (path in memoryCache) {
         timeouts[path] = Date.now();
@@ -162,19 +120,6 @@ export function deleteWisp(path: Wisp['path']): ReturnType<Manifest['deleteWisp'
     return Loaded.map(manifest => manifest.deleteWisp(path));
 }
 
-
-process.on('exit', () => {
-    logger.info('Unloading all manifests before exit', true);
-    logger.addPreface('    ');
-    Loaded.forEach(manifest => {
-        try {
-            remove(manifest);
-        } catch (e) {
-            logger.error(`Manifest<${manifest.name}> threw the following error during exit:` + Logger.parseError(e));
-        }
-    });
-});
-
 /* TODO: Make lock class that 'owns' write access to a wisp and all its children
         -> internal deferred promise 'aquire' queue for async/await ergonomics
         -> track read/write/delete calls on locks
@@ -185,7 +130,7 @@ process.on('exit', () => {
         Async Process 1 -> creates read promise to ensure GroupWisp exists
         Async Process 2 -> creates promise to delete GroupWisp
         Async Process 1 -> read promise resolves, GroupWisp currently exists
-        Async Process 1 -> creates write promise for new wisp underneath GroupWisp
+        Async Process 1 -> creates write promise for new child wisp underneath GroupWisp
         Async Process 2 -> delete promise resolves, GroupWisp is deleted
         Async Process 1 -> write promise fails, GroupWisp does not exist
         
