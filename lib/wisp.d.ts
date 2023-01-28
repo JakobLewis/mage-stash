@@ -1,7 +1,7 @@
-export declare type NotObject = string | number | boolean | undefined;
-declare type ShallowObject = NotObject | Array<NotObject>;
-export declare type LocalWispID = string;
-export declare type AbsolutePath = `/${string}`;
+export type NotObject = string | number | boolean | undefined;
+type ShallowObject = NotObject | Array<NotObject>;
+export type LocalWispID = string;
+export type AbsolutePath = `/${string}`;
 /**
  * TODO
  */
@@ -26,13 +26,13 @@ export interface Wisp<T extends string = string> {
         [key: string]: Readonly<ShallowObject>;
     }>;
 }
-export declare type GroupWisp = Wisp & {
+export type GroupWisp = Wisp & {
     content: string[];
 };
-export declare type ContentWisp = Wisp & {
+export type ContentWisp = Wisp & {
     content: string;
 };
-export declare type IncompleteWisp = Partial<{
+export type IncompleteWisp = Partial<{
     -readonly [K in keyof Wisp]: Wisp[K];
 }>;
 /** Thrown when a wisp is missing fields and/or has invalid field contents, such as a malformed path string. */
