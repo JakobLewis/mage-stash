@@ -1,4 +1,4 @@
-import Logger from "./logging";
+import Logger from "./logging.js";
 
 export interface Plugin {
     readonly name: string;
@@ -69,6 +69,7 @@ export function remove(plugin: Plugin): boolean {
 
 
 process.on('exit', () => {
+    if (Plugins.length === 0) return;
     logger.info('Unloading all plugins before exit', true);
     logger.addPreface('    ');
     Plugins.forEach(plugin => {
