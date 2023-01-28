@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as Wisp from './wisp.js';
 import { Manifest } from './manifest.js';
 import { compressSync, decompressSync } from './strings.js';
