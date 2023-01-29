@@ -2,6 +2,8 @@
 
 Customisable content management system written in TypeScript.
 
+> **WARNING:** This program arbitrarily executes all JavaScript files in `./lib/plugins` when passed `--autoload` as an argument, such as during `npm run build`.
+
 ## Immediate Roadmap
 
 1. More descriptive variables, less comments
