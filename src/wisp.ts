@@ -18,7 +18,7 @@ export interface Wisp<T extends string = string> {
     readonly path: `/${T}`;
     readonly content: string | LocalWispID[];
     /** Optional field describing both this Wisp and all of its child wisps. */
-    readonly metadata?: Readonly<{
+    readonly metadata: Readonly<{
         title?: string;
         coverImg?: string;
         desc?: string;
@@ -32,6 +32,7 @@ export interface Wisp<T extends string = string> {
         tags?: string[];
         /** Manually disable automatic content updates */
         disableAutoRefresh?: true;
+
         [key: string]: Readonly<ShallowObject>;
     }>;
 }
@@ -85,7 +86,7 @@ const localPathExpression = new RegExp('^[a-zA-Z0-9_]$');
 /** Checks whether a wisp path is valid using **idExp**. */
 export function isValidPath(path: any): path is Wisp['path'] {
     if (typeof path !== 'string') return false;
-    if (normalize(path) !== path) return false;
+    if (normalize(path).replace('\\', '/') !== path) return false;
     return absolutePathExpression.test(path);
 }
 

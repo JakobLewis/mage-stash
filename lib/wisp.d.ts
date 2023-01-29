@@ -10,7 +10,7 @@ export interface Wisp<T extends string = string> {
     readonly path: `/${T}`;
     readonly content: string | LocalWispID[];
     /** Optional field describing both this Wisp and all of its child wisps. */
-    readonly metadata?: Readonly<{
+    readonly metadata: Readonly<{
         title?: string;
         coverImg?: string;
         desc?: string;
