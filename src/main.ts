@@ -3,13 +3,14 @@ import * as Logger from './logging.js';
 Logger.default.write(3, 'main.js', 'Starting...', true);
 
 export * as Wisp from './wisp.js';
-export * as Plugin from './plugin.js';
+import * as Plugin from './plugin.js';
 export * as Strings from './strings.js';
+export * as Library from './library.js';
 
-//import FSCache from './fsCache.js';
+import Manifest from './manifest.js';
 
-export { Logger, /*FSCache*/ };
+export { Logger, Manifest, Plugin };
 
-//throw new Error('Oh no something stinky happened');
+Plugin.load(Manifest);
 
 Logger.default.write(3, 'main.js', 'MageStash initialisation completed', true);
