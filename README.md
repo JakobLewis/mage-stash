@@ -7,10 +7,10 @@ Customisable content management system written in TypeScript.
 1. More descriptive variables, less comments
 2. Fix atomic read/write operations with manifests
 3. Add support for custom manifests
-4. Automatic plugin loading on start-up (dedicated plugins folder? plugin signing for safety?)
 
 ## General To-dos
 
+- Make automatic loading of plugins more secure
 - Content grouping by reference, something like bookmarks (reference Wisps?)
 - Proper Plugin name standards and validation with Regex
 - Support for individual plugin settings which the user can change

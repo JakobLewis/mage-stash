@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc && npm run test",
     "go": "npm run build & node ./lib/main.js",
-    "test": "node ./lib/main.test.js --quiet --log"
+    "test": "node ./lib/main.test.js --quiet --log --autoload"
   },
   "repository": {
     "type": "git",
