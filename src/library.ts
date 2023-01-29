@@ -24,20 +24,7 @@ export function list(): string[] {
     return Loaded.map(library => library.name);
 }
 
-export async function findWisp(uniqueIdentifier: string, fuzzy: boolean): Promise<Wisp | undefined> {
-    const librarySnapshot = [...Loaded]; // Used to ensure Loaded changes dont break reads
-    for (const library of librarySnapshot) {
-        try {
-            const result = await library.findWisp(uniqueIdentifier, fuzzy);
-            if (result !== undefined) return result;
-        } catch (e) {
-            logger.descriptiveError(`Library<${library.name}> threw during findWisp: `, e);
-        }
-    }
-    return undefined;
-}
-
-export function scatterFindWisp(uniqueIdentifier: string, fuzzy: boolean): ReturnType<Library['findWisp']>[] {
+export function findWisp(uniqueIdentifier: string, fuzzy: boolean): ReturnType<Library['findWisp']>[] {
     return Loaded.map(library => {
         try {
             return library.findWisp(uniqueIdentifier, fuzzy)
@@ -57,6 +44,5 @@ export function search(searchTerms: string[]): ReturnType<Library['search']>[] {
             logger.descriptiveError(`Library<${library.name}> threw during search: `, e);
             return [];
         }
-    }
-    );
+    });
 }

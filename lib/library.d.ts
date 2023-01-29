@@ -6,6 +6,5 @@ export interface Library extends Plugin.Plugin {
 }
 export declare function add(library: Library): boolean;
 export declare function list(): string[];
-export declare function findWisp(uniqueIdentifier: string, fuzzy: boolean): Promise<Wisp | undefined>;
-export declare function scatterFindWisp(uniqueIdentifier: string, fuzzy: boolean): ReturnType<Library['findWisp']>[];
+export declare function findWisp(uniqueIdentifier: string, fuzzy: boolean): ReturnType<Library['findWisp']>[];
 export declare function search(searchTerms: string[]): ReturnType<Library['search']>[];
