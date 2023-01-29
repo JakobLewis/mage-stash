@@ -1,4 +1,4 @@
-import Logger from "./logging.js";
+import Logger from './logging.js';
 
 export interface Plugin {
     readonly name: string;
@@ -13,6 +13,17 @@ const logger = new Logger('plugin.js');
 
 const Plugins = new Array<Plugin>();
 const pluginNames = new Set<string>();
+
+export function isValid(plugin: any): plugin is Plugin {
+    return (
+        typeof plugin === 'object' &&
+        'name' in plugin && typeof plugin.name === 'string' &&
+        'hooks' in plugin && typeof plugin.hooks === 'object' && (
+            (!('start' in plugin.hooks) || typeof plugin.hooks.start === 'function') &&
+            (!('stop' in plugin.hooks) || typeof plugin.hooks.stop === 'function')
+        )
+    );
+}
 
 export function load(plugin: Plugin): boolean {
     if (Plugins.includes(plugin)) {
@@ -38,7 +49,7 @@ export function load(plugin: Plugin): boolean {
     Plugins.push(plugin);
     pluginNames.add(plugin.name);
 
-    logger.info(`Plugin<${plugin.name}> loaded`);
+    logger.info(`Plugin<${plugin.name}> loaded`, true);
 
     return true;
 }
@@ -67,10 +78,9 @@ export function remove(plugin: Plugin): boolean {
     return true;
 }
 
-
 process.on('exit', () => {
     if (Plugins.length === 0) return;
-    logger.info('Unloading all plugins before exit', true);
+    logger.info(`Unloading all (${Plugins.length}) plugins before exit`, true);
     logger.addPreface('    ');
     Plugins.forEach(plugin => {
         try {

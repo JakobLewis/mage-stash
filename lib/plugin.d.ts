@@ -5,5 +5,6 @@ export interface Plugin {
         readonly stop?: () => void;
     };
 }
+export declare function isValid(plugin: any): plugin is Plugin;
 export declare function load(plugin: Plugin): boolean;
 export declare function remove(plugin: Plugin): boolean;
