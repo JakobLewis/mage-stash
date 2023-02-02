@@ -6,7 +6,7 @@ Customisable content management system written in TypeScript.
 
 ## Immediate Roadmap
 
-1. More descriptive variables, less comments
+1. More descriptive variable names, less comments
 2. Fix atomic read/write operations with manifests
 3. Add support for custom manifests
 
@@ -18,4 +18,6 @@ Customisable content management system written in TypeScript.
 - Support for individual plugin settings which the user can change
 - Expanded search functionality for manifests (metadata-only, content-only, id-only, includes-metadata-field etc), possibly through a tree-like read iterator
 - Profiler for recording individual plugin metrics
+- Support for plugins which can "transform" wisps i.e. translators, exporters & formatters
+- Remove LZUTF8 and find alternative
 - **BIG** Both TUI and GUI packages, probably external repos
