@@ -11,7 +11,7 @@
     "build": "node ./scripts/clean.js && tsc",
     "test": "node ./lib/main.test.js --quiet --log --autoload",
     "start": "node ./lib/main.js",
-    "all": "npm run build && npm run test-all && npm start"
+    "all": "npm run build && npm run test && npm start"
   },
   "repository": {
     "type": "git",
