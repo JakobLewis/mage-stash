@@ -7,12 +7,18 @@ export const configArguments = {
 
 const logFileName = (new Date()).toISOString().split('T')[0]! + ' ' + (Math.round(Date.now() / 1000) % 100000).toString() + 'Z';
 
-const loggingLevels = {
+const LoggingLevels = {
     0: 'FATAL',
     1: 'ERROR',
-    2: 'WARN ',
-    3: 'INFO '
+    2: 'WARN',
+    3: 'INFO'
 } as const;
+
+const LevelPadding = Object.values(LoggingLevels).reduce((prev, curr) => curr.length > prev ? curr.length : prev, 0);
+
+type LoggingStats = {
+    [key in (typeof LoggingLevels)[keyof typeof LoggingLevels]]: number;
+};
 
 if (!existsSync('./logs')) mkdirSync('./logs');
 
@@ -20,6 +26,17 @@ export default class Logger {
 
     readonly location: string;
     preface: string;
+
+    private static _stats: LoggingStats = {
+        'FATAL': 0,
+        'ERROR': 0,
+        'WARN': 0,
+        'INFO': 0
+    };
+
+    static get stats(): LoggingStats {
+        return { ...Logger._stats };
+    }
 
     constructor(location: string, preface?: string) {
         this.location = location;
@@ -30,8 +47,10 @@ export default class Logger {
         this.preface = this.preface + msg;
     }
 
-    static write(lvl: keyof typeof loggingLevels, location: string, msg: string, sync: boolean) {
-        const completeMsg = `${Date.now()} ${loggingLevels[lvl]} ${location} ${msg}`.replaceAll('\n', '     \n');
+    static write(lvl: keyof typeof LoggingLevels, location: string, msg: string, sync: boolean) {
+        const lvlName = LoggingLevels[lvl];
+        Logger._stats[lvlName] += 1;
+        const completeMsg = `${Date.now()} ${lvlName.padEnd(LevelPadding)} ${location} ${msg}`.replaceAll('\n', '     \n');
         if (!configArguments.quiet || lvl < 3) console.log(completeMsg);
         if (configArguments.logToFile)
             sync ? appendFileSync(`./logs/${logFileName}.log`, completeMsg + '\n') : fs.appendFile(`./logs/${logFileName}.log`, completeMsg + "\n");
