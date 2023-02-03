@@ -13,9 +13,9 @@ export type AbsolutePath = `/${string}`;
 /**
  * TODO
  */
-export interface Wisp<T extends string = string> {
+export interface Wisp<T extends AbsolutePath = AbsolutePath> {
     /** Unique path. See absolutePathExpression for formatting rules */
-    readonly path: `/${T}`;
+    readonly path: T;
     readonly content: string | LocalWispID[];
     /** Optional field describing both this Wisp and all of its child wisps. */
     readonly metadata: Readonly<{
@@ -37,8 +37,8 @@ export interface Wisp<T extends string = string> {
     }>;
 }
 
-export type GroupWisp = Wisp & { content: string[] };
-export type ContentWisp = Wisp & { content: string };
+export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { content: string[] };
+export type ContentWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { content: string };
 
 export type IncompleteWisp = Partial<{
     -readonly [K in keyof Wisp]: Wisp[K];
