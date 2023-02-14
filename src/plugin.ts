@@ -3,6 +3,7 @@ import Logger from './logging.js';
 
 export interface Plugin {
     readonly name: string;
+    readonly handler?: string;
 
     readonly hooks: {
         readonly start?: () => void;

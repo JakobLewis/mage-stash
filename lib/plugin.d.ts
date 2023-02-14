@@ -2,6 +2,7 @@
 import EventEmitter from 'events';
 export interface Plugin {
     readonly name: string;
+    readonly handler?: string;
     readonly hooks: {
         readonly start?: () => void;
         readonly stop?: () => void;

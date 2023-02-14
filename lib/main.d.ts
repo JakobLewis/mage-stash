@@ -1,7 +1,8 @@
 import * as Logger from './logging.js';
-export * as Wisp from './wisp.js';
+import * as Strings from './strings.js';
+import * as Wisp from './wisp.js';
 import * as Plugin from './plugin.js';
-export * as Strings from './strings.js';
-export * as Library from './library.js';
+import * as Handlers from './handler.js';
+import * as Library from './library.js';
 import Manifest from './manifest.js';
-export { Logger, Manifest, Plugin };
+export { Wisp, Strings, Plugin, Handlers, Library, Manifest, Logger };
