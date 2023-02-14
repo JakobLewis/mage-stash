@@ -89,3 +89,6 @@ test(
 
 
 Main.Logger.default.write(3, 'main.test.js', 'Testing completed', true);
+
+Main.Logger.configArguments.logToFile = false;
+Main.Logger.default.purge();
