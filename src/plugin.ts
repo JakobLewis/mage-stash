@@ -1,3 +1,4 @@
+import EventEmitter from 'events';
 import Logger from './logging.js';
 
 export interface Plugin {
@@ -9,18 +10,28 @@ export interface Plugin {
     }
 }
 
+
 const logger = new Logger('plugin.js');
+
+interface PluginEvents extends EventEmitter {
+    on(event: 'loadingPlugin', listener: (plugin: Plugin) => void): this;
+    on(event: 'removingPlugin', listener: (plugin: Plugin) => void): this;
+    emit(event: 'loadingPlugin', plugin: Plugin): boolean;
+    emit(event: 'removingPlugin', plugin: Plugin): boolean;
+}
+export const events: PluginEvents = new EventEmitter();
 
 const Plugins = new Array<Plugin>();
 const pluginNames = new Set<string>();
 
 export function isValid(plugin: any): plugin is Plugin {
     return (
-        typeof plugin === 'object' &&
-        'name' in plugin && typeof plugin.name === 'string' &&
-        'hooks' in plugin && typeof plugin.hooks === 'object' && (
-            (!('start' in plugin.hooks) || typeof plugin.hooks.start === 'function') &&
-            (!('stop' in plugin.hooks) || typeof plugin.hooks.stop === 'function')
+        typeof plugin === 'object' && plugin !== null &&
+        typeof plugin.name === 'string' &&
+        ['string', 'undefined'].includes(typeof plugin.handler) &&
+        typeof plugin.hooks === 'object' && plugin.hooks !== null && (
+            ['function', 'undefined'].includes(typeof plugin.hooks.start) &&
+            ['function', 'undefined'].includes(typeof plugin.hooks.stop)
         )
     );
 }
@@ -46,6 +57,8 @@ export function load(plugin: Plugin): boolean {
         }
     }
 
+    events.emit('loadingPlugin', plugin);
+
     Plugins.push(plugin);
     pluginNames.add(plugin.name);
 
@@ -67,6 +80,8 @@ export function remove(plugin: Plugin): boolean {
         return false;
     }
 
+    events.emit('removingPlugin', plugin);
+
     pluginNames.delete(plugin.name);
     Plugins.splice(i, 1)
 
@@ -77,6 +92,7 @@ export function remove(plugin: Plugin): boolean {
 
     return true;
 }
+
 
 process.on('exit', () => {
     if (Plugins.length === 0) return;
