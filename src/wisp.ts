@@ -79,14 +79,14 @@ export function isGroupType(wisp: Wisp): wisp is GroupWisp {
 // }
 
 /** Exclude all characters in a string that aren't alphanumeric, the underscore (_) character or a forward-slash (/). String cannot end with a forward-slash. */
-const absolutePathExpression = new RegExp('^/[a-zA-Z0-9_\/]+[a-zA-Z0-9_]$');
+const absolutePathExpression = new RegExp('^\/[a-zA-Z0-9_]+(\/[a-zA-Z0-9_]+)*$');
 /** Exclude all characters in a string that aren't alphanumeric or the underscore (_) character. */
-const localPathExpression = new RegExp('^[a-zA-Z0-9_]$');
+const localPathExpression = new RegExp('^[a-zA-Z0-9_]+$');
 
 /** Checks whether a wisp path is valid using **idExp**. */
 export function isValidPath(path: any): path is Wisp['path'] {
     if (typeof path !== 'string') return false;
-    if (normalize(path).replace('\\', '/') !== path) return false;
+    if (normalize(path).replaceAll('\\', '/') !== path) return false;
     return absolutePathExpression.test(path);
 }
 
@@ -122,7 +122,6 @@ export function isValidMetadata(metadata: any): metadata is Wisp['metadata'] {
  * See **isValidId**, **isValidPath**, **isValidContent** and **isValidMetadata** for criteria. */
 export function assertIsValid<T extends any>(wisp: T): T extends Wisp ? true : never {
     if (typeof wisp !== 'object' || wisp === null) throw new MalformedWispError(`Type ${String(wisp)} is not compatable with the Wisp interface`);
-
     if (!('path' in wisp) || !isValidPath(wisp['path'])) throw new MalformedPathError((wisp as any)['path']);
     if (!('content' in wisp) || !isValidContent(wisp['content'])) throw new MalformedWispError(`Wisp<${(wisp as any)['path']}> has invalid content field with type "${typeof (wisp as any)['content']}"`);
     if ('metadata' in wisp && !isValidMetadata(wisp['metadata'])) throw new MalformedWispError(`Wisp<${(wisp as any)['path']}> has invalid metadata field with type "${typeof (wisp as any)['metadata']}"`);
@@ -152,4 +151,9 @@ export function searchFor(wisp: Wisp, searchTerms: string[]): boolean {
     }
 
     return false;
+}
+
+/** Checks whether one path contains the other */
+export function areDependent(path1: Wisp['path'], path2: Wisp['path']): boolean {
+    return path1.length > path2.length ? path1.startsWith(path2) : path2.startsWith(path1);
 }

@@ -59,4 +59,6 @@ export declare function assertIsValid<T extends any>(wisp: T): T extends Wisp ? 
 export declare function localId(path: Wisp['path']): string;
 /** Returns **true** if the given wisp includes any of the search terms, otherwise returns **false**. */
 export declare function searchFor(wisp: Wisp, searchTerms: string[]): boolean;
+/** Checks whether one path contains the other */
+export declare function areDependent(path1: Wisp['path'], path2: Wisp['path']): boolean;
 export {};
