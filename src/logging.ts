@@ -50,7 +50,7 @@ export default class Logger {
     static write(lvl: keyof typeof LoggingLevels, location: string, msg: string, sync: boolean) {
         const lvlName = LoggingLevels[lvl];
         Logger._stats[lvlName] += 1;
-        const completeMsg = `${Date.now()} ${lvlName.padEnd(LevelPadding)} ${location} ${msg}`.replaceAll('\n', '     \n');
+        const completeMsg = `${Date.now()} ${lvlName.padEnd(LevelPadding)} ${location} ${msg}`.replaceAll('\n', '\n    ');
         if (!configArguments.quiet || lvl < 3) console.log(completeMsg);
         if (configArguments.logToFile)
             sync ? appendFileSync(`./logs/${logFileName}.log`, completeMsg + '\n') : fs.appendFile(`./logs/${logFileName}.log`, completeMsg + "\n");

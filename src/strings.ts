@@ -3,8 +3,6 @@ import { createHash } from 'crypto';
 
 const { compress, decompress } = lzutf8;
 
-// TODO: Implement threaded async operations with Workers
-
 export function hash(input: string): string {
     return createHash('md5').update(input, 'utf-8').digest('hex');
 }
