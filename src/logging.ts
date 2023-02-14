@@ -5,7 +5,7 @@ export const configArguments = {
     "logToFile": process.argv.includes('--log') // Append messages to a file in ./logs when true
 };
 
-const logFileName = (new Date()).toISOString().split('T')[0]! + ' ' + (Math.round(Date.now() / 1000) % 100000).toString() + 'Z';
+const logFileName = (new Date()).toISOString().replaceAll(':', '-').split('.')[0] + 'Z';
 
 const LoggingLevels = {
     0: 'FATAL',
