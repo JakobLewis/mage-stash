@@ -3,3 +3,4 @@ logs/*
 store/*
 src/plugins/*
 lib/plugins/*
+.vscode/*
