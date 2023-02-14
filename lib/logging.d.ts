@@ -1,6 +1,6 @@
 export declare const configArguments: {
-    readonly quiet: boolean;
-    readonly logToFile: boolean;
+    quiet: boolean;
+    logToFile: boolean;
 };
 declare const LoggingLevels: {
     readonly 0: "FATAL";
@@ -20,6 +20,7 @@ export default class Logger {
     addPreface(msg: string): void;
     static write(lvl: keyof typeof LoggingLevels, location: string, msg: string, sync: boolean): void;
     static parseError(e: any): string;
+    static purge(): void;
     descriptiveError(msg: string, e?: any, sync?: boolean): void;
     error(e: any, sync?: boolean): void;
     warn(msg: string, sync?: boolean): void;

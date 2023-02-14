@@ -1,9 +1,9 @@
-import { promises as fs, appendFileSync, mkdirSync, existsSync } from 'fs';
+import { promises as fs, appendFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 
 export const configArguments = {
     "quiet": process.argv.includes('--quiet'),  // Do not print information messages
     "logToFile": process.argv.includes('--log') // Append messages to a file in ./logs when true
-} as const;
+};
 
 const logFileName = (new Date()).toISOString().split('T')[0]! + ' ' + (Math.round(Date.now() / 1000) % 100000).toString() + 'Z';
 
@@ -58,6 +58,10 @@ export default class Logger {
 
     static parseError(e: any): string {
         return e instanceof Error && e.stack !== undefined ? e.stack : 'Unknown error raised: ' + String(e);
+    }
+
+    static purge(): void {
+        rmSync(`./logs/${logFileName}.log`);
     }
 
     descriptiveError(msg: string, e: any = '', sync = false) {
