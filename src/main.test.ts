@@ -1,9 +1,15 @@
 import assert from 'assert';
 import * as Main from './main.js';
+import { existsSync, rmSync } from 'fs';
 
 const logger = new Main.Logger.default('main.test.js');
 
 logger.info('Beginning test', true);
+
+process.once('exit', () => {
+    if (existsSync('./store/temp'))
+        rmSync('./store/temp', { recursive: true, force: true });
+});
 
 function test(message: string, statement: boolean): void {
     assert(statement, message);
