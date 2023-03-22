@@ -4,9 +4,6 @@ import { normalize } from 'path';
 // TODO: Create better standard for searchThis + optimisation
 // TODO: Wisp as a class
 
-export type NotObject = string | number | boolean | undefined;
-type ShallowObject = NotObject | Array<NotObject>;
-
 export type LocalWispID = string;
 export type AbsolutePath = `/${string}`;
 
@@ -29,11 +26,11 @@ export interface Wisp<T extends AbsolutePath = AbsolutePath> {
         /** Content order */
         sequenceNumber?: number;
         /** Applicable tags. TODO: Tag standards */
-        tags?: string[];
+        tags?: ReadonlyArray<string>;
         /** Manually disable automatic content updates */
         disableAutoRefresh?: true;
 
-        [key: string]: Readonly<ShallowObject>;
+        [key: string]: string | number | boolean | undefined | ReadonlyArray<string | number | boolean | undefined>;
     }>;
 }
 

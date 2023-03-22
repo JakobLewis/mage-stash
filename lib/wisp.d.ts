@@ -1,5 +1,3 @@
-export type NotObject = string | number | boolean | undefined;
-type ShallowObject = NotObject | Array<NotObject>;
 export type LocalWispID = string;
 export type AbsolutePath = `/${string}`;
 /**
@@ -20,10 +18,10 @@ export interface Wisp<T extends AbsolutePath = AbsolutePath> {
         /** Content order */
         sequenceNumber?: number;
         /** Applicable tags. TODO: Tag standards */
-        tags?: string[];
+        tags?: ReadonlyArray<string>;
         /** Manually disable automatic content updates */
         disableAutoRefresh?: true;
-        [key: string]: Readonly<ShallowObject>;
+        [key: string]: string | number | boolean | undefined | ReadonlyArray<string | number | boolean | undefined>;
     }>;
 }
 export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & {
@@ -61,4 +59,3 @@ export declare function localId(path: Wisp['path']): string;
 export declare function searchFor(wisp: Wisp, searchTerms: string[]): boolean;
 /** Checks whether one path contains the other */
 export declare function areDependent(path1: Wisp['path'], path2: Wisp['path']): boolean;
-export {};
