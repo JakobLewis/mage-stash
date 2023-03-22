@@ -14,11 +14,14 @@ type LoggingStats = {
 export default class Logger {
     readonly location: string;
     preface: string;
+    private static lines;
     private static _stats;
     static get stats(): LoggingStats;
     constructor(location: string, preface?: string);
     addPreface(msg: string): void;
     static write(lvl: keyof typeof LoggingLevels, location: string, msg: string, sync: boolean): void;
+    static flush(): Promise<void> | void;
+    static flush(sync: true): void;
     static parseError(e: any): string;
     static purge(): void;
     descriptiveError(msg: string, e?: any, sync?: boolean): void;

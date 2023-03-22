@@ -27,6 +27,8 @@ export default class Logger {
     readonly location: string;
     preface: string;
 
+    private static lines = new Array<string>();
+
     private static _stats: LoggingStats = {
         'FATAL': 0,
         'ERROR': 0,
@@ -53,7 +55,16 @@ export default class Logger {
         const completeMsg = `${Date.now()} ${lvlName.padEnd(LevelPadding)} ${location} ${msg}`.replaceAll('\n', '\n    ');
         if (!configArguments.quiet || lvl < 3) console.log(completeMsg);
         if (configArguments.logToFile)
-            sync ? appendFileSync(`./logs/${logFileName}.log`, completeMsg + '\n') : fs.appendFile(`./logs/${logFileName}.log`, completeMsg + "\n");
+            sync ? appendFileSync(`./logs/${logFileName}.log`, completeMsg + '\n') : this.lines.push(completeMsg);
+    }
+
+    static flush(): Promise<void> | void;
+    static flush(sync: true): void;
+    static flush(sync = false): Promise<void> | void {
+        if (Logger.lines.length === 0) return;
+        const msg = Logger.lines.join('\n') + '\n';
+        Logger.lines.length = 0;
+        return sync ? appendFileSync(`./logs/${logFileName}.log`, msg) : fs.appendFile(`./logs/${logFileName}.log`, msg);
     }
 
     static parseError(e: any): string {
@@ -61,6 +72,7 @@ export default class Logger {
     }
 
     static purge(): void {
+        this.lines.length = 0;
         rmSync(`./logs/${logFileName}.log`);
     }
 
@@ -80,6 +92,10 @@ export default class Logger {
         Logger.write(3, this.location, this.preface + msg, sync);
     }
 }
+
+setInterval(Logger.flush, 1000).unref();
+
+process.on('exit', () => Logger.flush(true));
 
 process.on('uncaughtException', (e, origin) => {
     Logger.write(0, 'logger.js', origin + ' ' + Logger.parseError(e), true);
