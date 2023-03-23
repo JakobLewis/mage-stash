@@ -2,7 +2,6 @@ import { promises as fs, existsSync, mkdirSync } from 'fs';
 import { Manifest, ManifestSymbol } from '../manifest.js';
 import * as Wisp from '../wisp.js';
 import Logger from '../logging.js';
-import { decompressSync, compressSync } from '../strings.js';
 
 type StoredContentWisp = Omit<Wisp.ContentWisp, 'path'>;
 
@@ -19,8 +18,7 @@ const plugin: Manifest = {
         if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
 
         try { // Assume Wisp<T> is a ContentWisp
-            const compressedString = (await fs.readFile(storagePath + path)).toString();
-            const decompressedString = decompressSync(compressedString);
+            const decompressedString = (await fs.readFile(storagePath + path)).toString();
             const wisp = JSON.parse(decompressedString) as StoredContentWisp;
             return { ...wisp, path }
         } catch (e) {
@@ -76,7 +74,7 @@ const plugin: Manifest = {
 
                 await fs.writeFile(writePath + '/metadata.json', JSON.stringify(metadata));
 
-            } else await fs.writeFile(writePath, compressSync(JSON.stringify({ content, metadata })));
+            } else await fs.writeFile(writePath, JSON.stringify({ content, metadata }));
         } catch {
             return false;
         }
