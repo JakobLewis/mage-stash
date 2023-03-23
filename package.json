@@ -11,7 +11,7 @@
     "build": "node ./scripts/clean.js && tsc",
     "test": "echo This package does not have any tests currently included",
     "start": "node ./lib/main.js",
-    "all": "npm run build && npm run test && npm start"
+    "all": "npm run build && npm start"
   },
   "repository": {
     "type": "git",

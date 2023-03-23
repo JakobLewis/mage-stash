@@ -1,13 +1,15 @@
 import * as Logger from './logging.js';
-
-Logger.default.write(3, 'main.js', `Starting with args=['${process.argv.slice(2, process.argv.length).join('\', \'')}']`, true);
-
+import * as Plugin from './plugin.js';
+export { Logger, Plugin };
+export * as Manifest from './manifest.js';
 export * as Strings from './strings.js';
 export * as Wisp from './wisp.js';
-export * as Plugin from './plugin.js';
 export * as Library from './library.js';
-export * as Manifest from './manifest.js';
 
-Logger.default.write(3, 'main.js', 'MageStash initialisation completed', true);
+import fsCache from './defaults/fscache.js';
 
-export { Logger };
+export function loadDefaults() {
+    Plugin.load(fsCache);
+}
+
+Logger.default.write(3, 'main.js', `MageStash starting with args=['${process.argv.slice(2, process.argv.length).join('\', \'')}']`, true);

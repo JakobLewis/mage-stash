@@ -1,12 +1,11 @@
 # mage-stash
 
-Customisable content management system written in TypeScript.
+Plugin-based content management system written in TypeScript.
 
 > **WARNING:** This program arbitrarily executes all JavaScript files in `./lib/plugins` when passed `--autoload` as an argument, such as during `npm run build`.
 
 ## General Goals
 
-- Secure plugin autoloading + hot-reloading
 - Stabilised API
 - Documentation
 - Complete test coverage
@@ -14,19 +13,20 @@ Customisable content management system written in TypeScript.
 
 ## Immediate Roadmap
 
-1. Rename `handler.ts`, turn it into a plugin
-2. Remove `lzutf8` dependency
-3. Turn `manifest.ts` & `library.ts` into Handlers
-4. Add an asynchronous lock class to `manifest.ts`
-5. Rewrite `fsCache.ts`
-6. Rewrite `memoryCache.ts`
-7. Add `walk()` Iterator method to `manifest.ts` for efficient Wisp searching
-8. Enable persistent storage for individual plugin settings
-9. Allow Manifest plugins to specify a maximum number of parallel asynchronous operations
+1. Remove `lzutf8` dependency
+2. Turn `manifest.ts` & `library.ts` into plugins
+3. Add an asynchronous lock class to `manifest.ts`
+4. Rewrite `fsCache.ts`
+5. Rewrite `memoryCache.ts`
+6. Add `walk()` Iterator method to `manifest.ts` for efficient Wisp searching
+7. Enable persistent storage for individual plugin settings
+8. Allow Manifest plugins to specify a maximum number of parallel asynchronous operations
 
 ## General To-dos
 
 - Reconsider plugin autoloading
+- Manifest and Library stream APIs
+- Consider the extent to which Handlers own their plugins; should plugins be removed when their handler is?
 - Place expensive parts of `strings.ts` in a worker thread
 - Include a `github` plugin as demo
 - Allow batch-writing to Manifests

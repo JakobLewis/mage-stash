@@ -1,10 +1,6 @@
 import * as Wisp from './wisp.js';
 import * as Plugin from './plugin.js';
-import { compressSync, decompressSync } from './strings.js';
 import Logger from './logging.js';
-
-import { promises as fs, existsSync, mkdirSync } from 'fs';
-
 
 export interface Manifest extends Plugin.Plugin {
     readonly readWisp: <T extends Wisp.Wisp['path']>(path: T) => Promise<Wisp.Wisp<T> | undefined> | Wisp.Wisp<T> | undefined;
@@ -12,102 +8,63 @@ export interface Manifest extends Plugin.Plugin {
     readonly deleteWisp: (path: Wisp.Wisp['path']) => Promise<boolean> | boolean;
 }
 
-type StoredContentWisp = Omit<Wisp.ContentWisp, 'path'>;
-
-const storagePath = './store';
-
+export const ManifestSymbol = Symbol('manifest');
 const logger = new Logger('manifest.js');
+const loaded = new Array<Manifest>();
 
-async function readWisp<T extends Wisp.Wisp['path']>(path: T): Promise<Wisp.Wisp<T> | undefined> {
-    if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
+function isValid(manifest: Plugin.Plugin): manifest is Manifest {
+    return (
+        'readWisp' in manifest && typeof manifest.readWisp === 'function' &&
+        'writeWisp' in manifest && typeof manifest.readWisp === 'function' &&
+        'deleteWisp' in manifest && typeof manifest.readWisp === 'function'
+    );
+}
 
-    try { // Assume Wisp<T> is a ContentWisp
-        const compressedString = (await fs.readFile(storagePath + path)).toString();
-        const decompressedString = decompressSync(compressedString);
-        const wisp = JSON.parse(decompressedString) as StoredContentWisp;
-        return { ...wisp, path }
-    } catch (e) {
-        // EISDIR code signifies that we tried to read a directory
-        if (!(e instanceof Error && 'code' in e && e.code === 'EISDIR')) {
-            logger.descriptiveError(`Manifest.readWisp('${path}') threw: `, e);
-            return undefined;
-        }
+export function count(): number {
+    return loaded.length;
+}
 
+export function readWisp<T extends Wisp.Wisp['path']>(path: T): Promise<(Wisp.Wisp<T> | undefined)[]> | (Wisp.Wisp<T> | undefined)[] {
+    return Promise.all(loaded.map(async manifest => {
         try {
-            const files = await fs.readdir(storagePath + path);
-            if (!files.includes('metadata.json')) return undefined;
-
-            const readPromise = fs.readFile(storagePath + path + '/metadata.json');
-            const content = files.filter(Wisp.isValidLocalID);
-            const metadata = JSON.parse((await readPromise).toString());
-
-            return {
-                path, content, metadata
-            };
-
-        } catch (e2) {
-            logger.descriptiveError(`Manifest.readWisp('${path}') threw: `, e2);
+            return await manifest.readWisp(path);
+        } catch (e) {
+            logger.descriptiveError(`Manifest<${manifest.name}> threw during read: `, e);
             return undefined;
         }
-    }
+    }));
 }
 
-async function writeWisp(wisp: Wisp.Wisp): Promise<boolean> {
-    // Very clunky, inefficient. Needs write-queue before type-caching can be used for faster reads
-
-    try {
-        Wisp.assertIsValid(wisp);
-    } catch (e) {
-        logger.warn(`writeWisp ` + Logger.parseError(e));
-        return false;
-    }
-
-    const { path, content, metadata } = wisp;
-    const writePath = storagePath + path;
-
-    try {
-        if (typeof content === 'object') {
-            try {
-                await fs.mkdir(writePath);
-            } catch (e) {
-                if (!(e instanceof Error) || !((e as any).code === 'EEXIST' && (e as any).syscall === 'mkdir')) {
-                    logger.descriptiveError(`GroupWisp<${path}> directory creation failed: `, e);
-                    return false;
-                }
-            }
-
-            await fs.writeFile(writePath + '/metadata.json', JSON.stringify(metadata));
-
-        } else await fs.writeFile(writePath, compressSync(JSON.stringify({ content, metadata })));
-    } catch {
-        return false;
-    }
-
-    return true;
+export function writeWisp(wisp: Wisp.Wisp): Promise<boolean[]> | boolean[] {
+    return Promise.all(loaded.map(async manifest => {
+        try {
+            return await manifest.writeWisp(wisp);
+        } catch (e) {
+            logger.descriptiveError(`Manifest<${manifest.name}> threw during write: `, e);
+            return false;
+        }
+    }));
 }
 
-async function deleteWisp(path: Wisp.Wisp['path']): Promise<boolean> {
-    if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
-
-    try {
-        await Promise.all([
-            fs.rm(storagePath + path, { force: true, recursive: true }),
-        ]);
-        return true;
-    } catch (e) {
-        logger.descriptiveError(`Error while deleting Wisp<${path}>: `, e);
-        return false;
-    }
+export function deleteWisp(path: Wisp.Wisp['path']): Promise<boolean[]> | boolean[] {
+    return Promise.all(loaded.map(async manifest => {
+        try {
+            return await manifest.deleteWisp(path);
+        } catch (e) {
+            logger.descriptiveError(`Manifest<${manifest.name}> threw during delete: `, e);
+            return false;
+        }
+    }));
 }
 
-const manifest: Manifest = {
-    name: 'Manifest',
+Plugin.load({
+    name: 'manifest',
+    domain: Plugin.NoDomain,
     hooks: {
-        start: () => existsSync(storagePath) ? null : mkdirSync(storagePath)
-    },
-    writeWisp,
-    deleteWisp,
-    readWisp
-};
-
-export default manifest;
+        start: () => Plugin.attachToDomain(ManifestSymbol, isValid, loaded),
+        stop: () => {
+            Plugin.detachFromDomain(ManifestSymbol, isValid, loaded);
+            loaded.length = 0;
+        }
+    }
+});
