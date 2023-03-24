@@ -13,7 +13,7 @@ export type AbsolutePath = `/${string}`;
 export interface Wisp<T extends AbsolutePath = AbsolutePath> {
     /** Unique path. See absolutePathExpression for formatting rules */
     readonly path: T;
-    readonly content: string | LocalWispID[];
+    readonly content: string | ReadonlyArray<LocalWispID>;
     /** Optional field describing both this Wisp and all of its child wisps. */
     readonly metadata: Readonly<{
         title?: string;
