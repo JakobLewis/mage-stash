@@ -4,3 +4,4 @@ store/*
 src/plugins/*
 lib/plugins/*
 .vscode/*
+tsconfig.tsbuildinfo
