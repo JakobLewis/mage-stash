@@ -14,8 +14,8 @@ const plugin: Manifest = {
     domain: ManifestSymbol,
     hooks: {},
     readWisp: async function <T extends Wisp.AbsolutePath>(path: T): Promise<Wisp.Wisp<T> | undefined> {
-        throw new Error('Function not implemented.');
-        if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
+        //throw new Error('Function not implemented.');
+
 
         try { // Assume Wisp<T> is a ContentWisp
             const decompressedString = (await fs.readFile(storagePath + path)).toString();
@@ -23,8 +23,7 @@ const plugin: Manifest = {
             return { ...wisp, path }
         } catch (e) {
             // EISDIR code signifies that we tried to read a directory
-            // @ts-expect-error
-            if (!(e instanceof Error && 'code' in e && e.code === 'EISDIR')) {
+            if (typeof e !== 'object' || e == null || !('code' in e) || e.code !== 'EISDIR') {
                 logger.descriptiveError(`Manifest.readWisp('${path}') threw: `, e);
                 return undefined;
             }
@@ -48,15 +47,8 @@ const plugin: Manifest = {
         }
     },
     writeWisp: async function (wisp: Wisp.Wisp): Promise<boolean> {
-        throw new Error('Function not implemented.');
+        //throw new Error('Function not implemented.');
         // Very clunky, inefficient. Needs write-queue before type-caching can be used for faster reads
-
-        try {
-            Wisp.assertIsValid(wisp);
-        } catch (e) {
-            logger.warn(`writeWisp ` + Logger.parseError(e));
-            return false;
-        }
 
         const { path, content, metadata } = wisp;
         const writePath = storagePath + path;
@@ -82,13 +74,10 @@ const plugin: Manifest = {
         return true;
     },
     deleteWisp: async function (path: Wisp.AbsolutePath): Promise<boolean> {
-        throw new Error('Function not implemented.');
-        if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
+        //throw new Error('Function not implemented.');
 
         try {
-            await Promise.all([
-                fs.rm(storagePath + path, { force: true, recursive: true }),
-            ]);
+            await fs.rm(storagePath + path, { recursive: true })
             return true;
         } catch (e) {
             logger.descriptiveError(`Error while deleting Wisp<${path}>: `, e);

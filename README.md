@@ -19,6 +19,7 @@ Plugin-based content management system written in TypeScript.
 
 ## General To-dos
 
+- Compensate for removed manifests when iterating over them in `manifest.ts`
 - Consider the extent to which Handlers own their plugins; should plugins be removed when their handler is?
 - Allow plugins to specify a maximum number of parallel asynchronous operations
 - Include a `github` plugin as demo
