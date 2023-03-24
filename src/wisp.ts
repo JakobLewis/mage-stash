@@ -34,8 +34,8 @@ export interface Wisp<T extends AbsolutePath = AbsolutePath> {
     }>;
 }
 
-export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { content: string[] };
-export type ContentWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { content: string };
+export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { readonly content: string[] };
+export type ContentWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { readonly content: string };
 
 export type IncompleteWisp = Partial<{
     -readonly [K in keyof Wisp]: Wisp[K];
