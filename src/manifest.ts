@@ -8,11 +8,11 @@ export interface Manifest extends Plugin.Plugin {
     readonly deleteWisp: (path: Wisp.Wisp['path']) => Promise<boolean> | boolean;
 }
 
-type QueuedItem = {
+type QueuedItem = Readonly<{
     path: Wisp.AbsolutePath,
     promise: Promise<any>,
     resolve: () => void
-};
+}>;
 
 export const ManifestSymbol = Symbol('manifest');
 
