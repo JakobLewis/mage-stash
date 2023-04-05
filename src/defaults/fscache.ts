@@ -58,7 +58,7 @@ const plugin: Manifest = {
                 try {
                     await fs.mkdir(writePath);
                 } catch (e) {
-                    if (!(e instanceof Error) || !((e as any).code === 'EEXIST' && (e as any).syscall === 'mkdir')) {
+                    if (typeof e !== 'object' || e == null || !('code' in e) || e.code !== 'EEXIST') {
                         logger.descriptiveError(`GroupWisp<${path}> directory creation failed: `, e);
                         return false;
                     }
