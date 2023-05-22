@@ -67,7 +67,8 @@ const plugin: Manifest = {
                 await fs.writeFile(writePath + '/metadata.json', JSON.stringify(metadata));
 
             } else await fs.writeFile(writePath, JSON.stringify({ content, metadata }));
-        } catch {
+        } catch (e) {
+            logger.descriptiveError(`Wisp<${path}> writing failed: `, e);
             return false;
         }
 
@@ -80,7 +81,8 @@ const plugin: Manifest = {
             await fs.rm(storagePath + path, { recursive: true })
             return true;
         } catch (e) {
-            logger.descriptiveError(`Error while deleting Wisp<${path}>: `, e);
+            if (typeof e !== 'object' || e == null || !('code' in e) || e.code !== 'ENOENT')
+                logger.descriptiveError(`Error while deleting Wisp<${path}>: `, e);
             return false;
         }
     }
