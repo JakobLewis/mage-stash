@@ -16,6 +16,13 @@ const LoggingLevels = {
 
 const LevelPadding = Object.values(LoggingLevels).reduce((prev, curr) => curr.length > prev ? curr.length : prev, 0);
 
+class UnknownError extends Error {
+    constructor(msg: string) {
+        super(msg);
+        this.name = 'UnknownError';
+    }
+}
+
 type LoggingStats = {
     [key in (typeof LoggingLevels)[keyof typeof LoggingLevels]]: number;
 };
@@ -68,7 +75,8 @@ export default class Logger {
     }
 
     static parseError(e: any): string {
-        return e instanceof Error && e.stack !== undefined ? e.stack : 'Unknown error raised: ' + String(e);
+        return e instanceof Error && e.stack !== undefined ?
+            e.stack : (new UnknownError(String(e))).stack!.split('\n').slice(2).join('\n');
     }
 
     static purge(): void {
