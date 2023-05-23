@@ -1,5 +1,5 @@
 import * as Plugin from './plugin.js';
-import { Wisp } from './wisp.js';
+import { Wisp, AbsolutePath } from './wisp.js';
 import Logger from './logging.js';
 
 // TODO: Implement searching
@@ -9,12 +9,20 @@ export interface Library extends Plugin.Plugin {
     readonly domain: typeof LibrarySymbol;
     readonly findWisp: (uniqueIdentifier: string, fuzzy: boolean) => Promise<Wisp | undefined> | Wisp | undefined;
     readonly search: (searchTerms: string[]) => Promise<Wisp[]> | Wisp[];
+    readonly shortlist?: {
+        readonly update: () => Promise<boolean> | boolean;
+        readonly data: Record<string, AbsolutePath[]>;
+    };
 }
 
 export function isValid(library: Plugin.Plugin): library is Library {
     return (
         'findWisp' in library && typeof library.findWisp === 'function' &&
-        'search' in library && typeof library.search === 'function'
+        'search' in library && typeof library.search === 'function' &&
+        (!('shortList' in library) || (typeof library.shortList === 'object' && library.shortList !== null &&
+            'update' in library.shortList && typeof library.shortList.update === 'function' &&
+            'data' in library.shortList && typeof library.shortList.data === 'object' && library.shortList.data !== null
+        ))
     );
 }
 
@@ -40,6 +48,17 @@ export function search(searchTerms: string[]): Promise<(Wisp[])[]> {
         } catch (e) {
             logger.descriptiveError(`Library<${library.name}> threw during search: `, e);
             return [];
+        }
+    }));
+}
+
+export function updateShortlists(): Promise<boolean[]> {
+    return Promise.all(loaded.map(async library => {
+        try {
+            return 'shortlist' in library ? await library.shortlist.update() : false;
+        } catch (e) {
+            logger.descriptiveError(`Library<${library.name}> threw during shortlist update: `, e);
+            return false;
         }
     }));
 }
