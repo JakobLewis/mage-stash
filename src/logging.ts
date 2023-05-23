@@ -74,8 +74,11 @@ export default class Logger {
     }
 
     static parseError(e: any): string {
-        return e instanceof Error && e.stack !== undefined ?
-            e.stack : (new UnknownError(String(e))).stack!.split('\n').slice(2).join('\n');
+        if (e instanceof Error && e.stack !== undefined) return e.stack;
+
+        const errorLines = (new UnknownError(String(e))).stack!.split('\n');
+        errorLines.splice(1, 2);
+        return errorLines.join('\n');
     }
 
     static purge(): void {
