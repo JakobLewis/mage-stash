@@ -1,6 +1,20 @@
 # mage-stash
 
-Plugin-based content management system written in TypeScript.
+Plugin-based content management system (CMS) with dynamic dispatch.
+
+## Installation
+
+### NPM Dependency
+
+```bash
+npm install https://github.com/JakobLewis/mage-stash
+```
+
+### Git Project
+
+```bash
+git clone https://github.com/JakobLewis/mage-stash
+```
 
 ## General Goals
 
@@ -11,25 +25,25 @@ Plugin-based content management system written in TypeScript.
 
 ## Immediate Roadmap
 
-1. Add in-memory Wisp tree utility class for sorting and searching
+1. Add in-memory Wisp tree utility class for caching
 2. Refactor `fsCache.ts` for better readability
-3. Cap Manifest concurrent operations to 100 at a time
-4. Add `walk()` Iterator method to `manifest.ts` for memory-efficient Wisp searching
 
 ## General To-dos
 
-- More realistic/real-world testcases in `manifest.test.ts` such as writing a deeper Wisp tree
-- Compensate for removed Manifests when iterating over them in `manifest.ts`
+- Finish documentation
 - Include a `github` plugin as demo
 - Allow batch-writing to Manifests
-- Allow Library plugins to supply an items-of-interest list that gets automatically cached by `manifest.ts`
+- Add removal/addition hooks for adding and removing domain plugins
 - Ensure all plugin names are alphanumeric
-- Utility functions for fine-grain Manifest searching build on `walk()`
+- Utility functions for fine-grain Manifest searching built on `walk()`
 - Debug method that wraps Plugins and tracks usage + performance
 
 ## Features under Consideration
 
+- Move to node:test for less dependencies and hopefully process.on('exit') handlers
 - Global configuration settings
+- Custom command for adding plugins from GitHub that can then be easily updated
+- Use Zod for runtime type validation
 - Layout API for Manifests that returns a list of all stored wisp paths
 - Testing cases where typing rules are broken
 - Option for sandboxed Plugins to ensure Manifest operations never clash
@@ -38,4 +52,4 @@ Plugin-based content management system written in TypeScript.
 - Rename Manifest to Bookshelf for clarity
 - Foreign-Plugin API that uses sockets for inter-process Plugin loading and communication
 - CLI for regularly refreshing cached Wisps
-- Pretty TUI that lists all actions being performed :D
+- Pretty TUI that lists all actions being performed :
