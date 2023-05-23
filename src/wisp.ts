@@ -10,12 +10,12 @@ export type AbsolutePath = `/${string}`;
 /**
  * TODO
  */
-export interface Wisp<T extends AbsolutePath = AbsolutePath> {
+export interface Wisp<T extends AbsolutePath = AbsolutePath, K extends string | ReadonlyArray<string> = string | ReadonlyArray<string>> {
     /** Unique path. See absolutePathExpression for formatting rules */
     readonly path: T;
-    readonly content: string | ReadonlyArray<LocalWispID>;
+    readonly content: K;
     /** Optional field describing both this Wisp and all of its child wisps. */
-    readonly metadata: Readonly<{
+    readonly metadata?: Readonly<{
         title?: string;
         coverImg?: string;
         desc?: string;
@@ -34,8 +34,8 @@ export interface Wisp<T extends AbsolutePath = AbsolutePath> {
     }>;
 }
 
-export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { readonly content: string[] };
-export type ContentWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T> & { readonly content: string };
+export type GroupWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T, ReadonlyArray<string>>;
+export type ContentWisp<T extends AbsolutePath = AbsolutePath> = Wisp<T, string>;
 
 export type IncompleteWisp = Partial<{
     -readonly [K in keyof Wisp]: Wisp[K];

@@ -3,7 +3,7 @@ import { Manifest, ManifestSymbol } from '../manifest.js';
 import * as Wisp from '../wisp.js';
 import Logger from '../logging.js';
 
-type StoredContentWisp = Omit<Wisp.ContentWisp, 'path'>;
+type StoredContentWisp = Omit<Wisp.ContentWisp, 'path'> | Wisp.ContentWisp['content'];
 
 const logger = new Logger('manifest.js');
 const storagePath = './store';
@@ -15,12 +15,11 @@ const plugin: Manifest = {
     hooks: {},
     readWisp: async function <T extends Wisp.AbsolutePath>(path: T): Promise<Wisp.Wisp<T> | undefined> {
         //throw new Error('Function not implemented.');
-
-
         try { // Assume Wisp<T> is a ContentWisp
             const decompressedString = (await fs.readFile(storagePath + path)).toString();
             const wisp = JSON.parse(decompressedString) as StoredContentWisp;
-            return { ...wisp, path }
+            if (typeof wisp === 'string') return { path, content: wisp };
+            return { path, ...wisp }
         } catch (e) {
             // EISDIR code signifies that we tried to read a directory
             if (typeof e !== 'object' || e == null || !('code' in e) || e.code !== 'EISDIR') {
@@ -30,15 +29,14 @@ const plugin: Manifest = {
 
             try {
                 const files = await fs.readdir(storagePath + path);
-                if (!files.includes('metadata.json')) return undefined;
 
-                const readPromise = fs.readFile(storagePath + path + '/metadata.json');
-                const content = files.filter(Wisp.isValidLocalID);
-                const metadata = JSON.parse((await readPromise).toString());
+                const readPromise = files.includes('metadata.json') ? fs.readFile(storagePath + path + '/metadata.json') : undefined;
+                const content = files.filter(Wisp.isValidLocalID).sort();
 
-                return {
-                    path, content, metadata
-                };
+                if (readPromise === undefined) return { path, content };
+                else return {
+                    path, content, metadata: JSON.parse((await readPromise).toString())
+                }
 
             } catch (e2) {
                 logger.descriptiveError(`Manifest.readWisp('${path}') threw: `, e2);
@@ -51,9 +49,11 @@ const plugin: Manifest = {
         // Very clunky, inefficient. Needs write-queue before type-caching can be used for faster reads
 
         const { path, content, metadata } = wisp;
+
         const writePath = storagePath + path;
 
         try {
+            await fs.rm(writePath, { force: true, recursive: true });
             if (typeof content === 'object') {
                 try {
                     await fs.mkdir(writePath);
@@ -64,9 +64,12 @@ const plugin: Manifest = {
                     }
                 }
 
-                await fs.writeFile(writePath + '/metadata.json', JSON.stringify(metadata));
+                if (metadata !== undefined)
+                    await fs.writeFile(writePath + '/metadata.json', JSON.stringify(metadata));
 
-            } else await fs.writeFile(writePath, JSON.stringify({ content, metadata }));
+            } else
+                metadata === undefined ? await fs.writeFile(writePath, JSON.stringify(content)) : await fs.writeFile(writePath, JSON.stringify({ content, metadata }));
+
         } catch (e) {
             logger.descriptiveError(`Wisp<${path}> writing failed: `, e);
             return false;
@@ -76,7 +79,6 @@ const plugin: Manifest = {
     },
     deleteWisp: async function (path: Wisp.AbsolutePath): Promise<boolean> {
         //throw new Error('Function not implemented.');
-
         try {
             await fs.rm(storagePath + path, { recursive: true })
             return true;
