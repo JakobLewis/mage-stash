@@ -1,6 +1,7 @@
 export declare const configArguments: {
     quiet: boolean;
     logToFile: boolean;
+    logFileName: string;
 };
 declare const LoggingLevels: {
     readonly 0: "FATAL";
@@ -28,5 +29,6 @@ export default class Logger {
     error(e: any, sync?: boolean): void;
     warn(msg: string, sync?: boolean): void;
     info(msg: string, sync?: boolean): void;
+    static ensureLogDirExists(): void;
 }
 export {};

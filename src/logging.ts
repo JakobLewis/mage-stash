@@ -2,10 +2,9 @@ import { promises as fs, appendFileSync, mkdirSync, existsSync, rmSync } from 'f
 
 export const configArguments = {
     "quiet": process.argv.includes('--quiet'),  // Do not print information messages
-    "logToFile": process.argv.includes('--log') // Append messages to a file in ./logs when true
+    "logToFile": process.argv.includes('--log'), // Append messages to a file in ./logs when true
+    "logFileName": (new Date()).toISOString().replaceAll(':', '-').split('.')[0] + 'Z'
 };
-
-const logFileName = (new Date()).toISOString().replaceAll(':', '-').split('.')[0] + 'Z';
 
 const LoggingLevels = {
     0: 'FATAL',
@@ -27,7 +26,7 @@ type LoggingStats = {
     [key in (typeof LoggingLevels)[keyof typeof LoggingLevels]]: number;
 };
 
-if (!existsSync('./logs')) mkdirSync('./logs');
+if (!existsSync('./logs') && configArguments.logToFile) mkdirSync('./logs');
 
 export default class Logger {
 
@@ -62,7 +61,7 @@ export default class Logger {
         const completeMsg = `${Date.now()} ${lvlName.padEnd(LevelPadding)} ${location} ${msg}`.replaceAll('\n', '\n    ');
         if (!configArguments.quiet || lvl < 3) console.log(completeMsg);
         if (configArguments.logToFile)
-            sync ? appendFileSync(`./logs/${logFileName}.log`, completeMsg + '\n') : this.lines.push(completeMsg);
+            sync ? appendFileSync(`./logs/${configArguments.logFileName}.log`, completeMsg + '\n') : this.lines.push(completeMsg);
     }
 
     static flush(): Promise<void> | void;
@@ -71,7 +70,7 @@ export default class Logger {
         if (Logger.lines.length === 0) return;
         const msg = Logger.lines.join('\n') + '\n';
         Logger.lines.length = 0;
-        return sync ? appendFileSync(`./logs/${logFileName}.log`, msg) : fs.appendFile(`./logs/${logFileName}.log`, msg);
+        return sync ? appendFileSync(`./logs/${configArguments.logFileName}.log`, msg) : fs.appendFile(`./logs/${configArguments.logFileName}.log`, msg);
     }
 
     static parseError(e: any): string {
@@ -81,7 +80,7 @@ export default class Logger {
 
     static purge(): void {
         this.lines.length = 0;
-        rmSync(`./logs/${logFileName}.log`);
+        rmSync(`./logs/${configArguments.logFileName}.log`);
     }
 
     descriptiveError(msg: string, e: any = '', sync = false) {
@@ -98,6 +97,10 @@ export default class Logger {
 
     info(msg: string, sync = false) {
         Logger.write(3, this.location, this.preface + msg, sync);
+    }
+
+    static ensureLogDirExists(): void {
+        if (!existsSync('./logs')) mkdirSync('./logs');
     }
 }
 
