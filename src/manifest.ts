@@ -126,7 +126,7 @@ export async function writeWisp(wisp: Wisp.Wisp): Promise<boolean[]> {
 }
 
 export async function deleteWisp(path: Wisp.Wisp['path']): Promise<boolean[]> {
-    if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path)
+    if (!Wisp.isValidPath(path)) throw new Wisp.MalformedPathError(path);
 
     const wispLock = await lock(path);
     // Note: for .. of and [...loaded] are not used to ensure unloaded plugins arent called
@@ -144,6 +144,28 @@ export async function deleteWisp(path: Wisp.Wisp['path']): Promise<boolean[]> {
 
     unlock(wispLock);
     return results;
+}
+
+export async function* walk(path: Wisp.Wisp['path']): AsyncIterable<Wisp.Wisp> {
+
+    const groupBreadcrumbs = new Array<Wisp.GroupWisp>();
+    const first = await readWisp(path);
+
+    if (first === undefined) return;
+    else if (Wisp.isGroupType(first)) groupBreadcrumbs.push(first);
+
+    yield first;
+
+    while (groupBreadcrumbs.length > 0) {
+        const { path, content } = groupBreadcrumbs[groupBreadcrumbs.length - 1]!;
+        groupBreadcrumbs.pop();
+        for (const child of content) {
+            const childWisp = await readWisp(`${path}/${child}`);
+            if (childWisp === undefined) continue;
+            yield childWisp;
+            if (Wisp.isGroupType(childWisp)) groupBreadcrumbs.push(childWisp);
+        }
+    }
 }
 
 Plugin.load({

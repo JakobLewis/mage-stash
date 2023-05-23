@@ -11,3 +11,4 @@ export declare function readWisp<T extends Wisp.Wisp['path']>(path: T): Promise<
 export declare function readWispAll<T extends Wisp.Wisp['path']>(path: T): Promise<(Wisp.Wisp<T> | undefined)[]>;
 export declare function writeWisp(wisp: Wisp.Wisp): Promise<boolean[]>;
 export declare function deleteWisp(path: Wisp.Wisp['path']): Promise<boolean[]>;
+export declare function walk(path: Wisp.Wisp['path']): AsyncIterable<Wisp.Wisp>;

@@ -1,5 +1,5 @@
 import { Wisp, Manifest, loadDefaults } from './main.js';
-import assert from 'node:assert';
+import assert, { AssertionError } from 'node:assert';
 import { describe, it, expect } from '@jest/globals';
 
 loadDefaults();
@@ -376,7 +376,7 @@ describe('Deletions should succeed', () => {
                 content: []
             }), Manifest.writeWisp(wisp1), Manifest.writeWisp(wisp2)]);
         } finally {
-            assert.deepEqual(await Manifest.deleteWisp(wisp1.path), success);
+            assert.deepEqual(await Manifest.deleteWisp('/deletionTest3'), success);
         }
     });
 });
@@ -419,5 +419,66 @@ describe('After deletion, reads should fail', () => {
         assert.equal(await Manifest.readWisp(wisp1.path), undefined);
         assert.equal(await Manifest.readWisp(wisp2.path), undefined);
         assert.equal(await Manifest.readWisp('/deletionTestWithRead3'), undefined);
+    });
+});
+
+describe('Calling walk', () => {
+    it('on a non-existent Wisp should not iterate', async () => {
+        for await (const _ of Manifest.walk('/walkTest1')) {
+            throw new AssertionError({ message: "This should never run" });
+        }
+    });
+
+    it('on a ContentWisp only yields the ContentWisp', async () => {
+        const wisp: Wisp.ContentWisp = {
+            path: '/walkTest2',
+            content: 'real nice content'
+        };
+        await Manifest.writeWisp(wisp);
+        let i = 0;
+
+        try {
+            for await (const wispIter of Manifest.walk(wisp.path)) {
+                i += 1;
+                assert.deepEqual(wispIter, wisp);
+            }
+            assert(i === 1);
+        } finally {
+            await Manifest.deleteWisp(wisp.path);
+        }
+    });
+
+    it('on a GroupWisp yields it an all children, recursively', async () => {
+        const wisps: Wisp.Wisp[] = [{
+            path: '/walkTest3',
+            content: ['contentWisp', 'groupWisp']
+        }, {
+            path: '/walkTest3/contentWisp',
+            content: 'lalala',
+            metadata: {
+                'wow so': 'cool'
+            }
+        }, {
+            path: '/walkTest3/groupWisp',
+            content: ['contentWisp2'],
+        }, {
+            path: '/walkTest3/groupWisp/contentWisp2',
+            content: 'nice'
+        }];
+
+        await Promise.all(wisps.map(Manifest.writeWisp));
+
+        try {
+            for await (const wispIter of Manifest.walk(wisps[0]!.path)) {
+                const i = wisps.findIndex(wisp => wisp.path === wispIter.path);
+                assert(i != -1);
+                assert.deepEqual(wisps[i], wispIter);
+                wisps.splice(i, 1);
+            }
+
+            assert(wisps.length === 0);
+        } finally {
+            await Manifest.deleteWisp('/walkTest3');
+        }
     });
 });
